@@ -655,23 +655,24 @@ Never sound like a script or an exam. Be warm, relaxed, and genuinely conversati
         setMicError("Microphone access was blocked. Allow microphone permission for this page and try again.");
         setSessionOn(false); sessionOnRef.current = false;
       } else if (e.error === "no-speech") {
-        // just silence — if session still on, listen again
-        if (sessionOnRef.current) startListening();
+        // just silence — if session still on, listen again after a short
+        // delay so the browser has time to release the mic first
+        if (sessionOnRef.current) setTimeout(startListening, 400);
       }
     };
     r.onend = () => {
       setIsListening(false);
       if (finalText.trim()) {
         setInput("");
-        send(finalText.trim(), () => { if (sessionOnRef.current) startListening(); });
+        send(finalText.trim(), () => { if (sessionOnRef.current) setTimeout(startListening, 400); });
       } else if (sessionOnRef.current) {
-        startListening();
+        setTimeout(startListening, 400);
       }
     };
     recognRef.current = r;
     setMicError("");
     setIsListening(true);
-    try { r.start(); } catch { setIsListening(false); }
+    try { r.start(); } catch { setIsListening(false); if (sessionOnRef.current) setTimeout(startListening, 500); }
   };
 
   const toggleSession = () => {
